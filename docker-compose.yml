@@ -1,0 +1,31 @@
+services:
+
+  app:
+    build: .
+    container_name: petsite
+    ports:
+      - "6060:6060"
+    env_file:
+      - .env
+    environment:
+      DBHOST: postgres
+    depends_on:
+      - postgres
+    volumes:
+      - ./static/images:/app/static/images
+      - ./log:/app/log
+
+  postgres:
+    image: postgres:17
+    container_name: petsite-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${PASSWORDB}
+      POSTGRES_DB: ${NAMEDB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

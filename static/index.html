@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Frame — каталог фильмов</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-void:#14121b; --bg-panel:#1d1a28; --bg-raised:#252131; --border:#322d40;
+  --text:#f5f2ec; --muted:#948da5; --gold:#f2b705; --flame:#e8492a; --teal:#3fa796;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg-void);color:var(--text);min-height:100vh}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+
+.sprocket{height:12px;background-color:var(--gold);
+  background-image:radial-gradient(circle at 6px 6px,var(--bg-void) 3.4px,transparent 3.6px);
+  background-size:20px 12px;background-repeat:repeat-x}
+
+.nav{background:var(--bg-panel);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:20}
+.nav-inner{max-width:1120px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:28px}
+.brand{display:flex;align-items:center;gap:8px;background:none;border:none;color:var(--text);
+  font-family:'Fraunces',serif;font-size:20px;font-weight:600}
+.nav-links{display:flex;gap:4px;flex:1}
+.nav-link{background:none;border:none;color:var(--muted);font-size:14px;padding:8px 12px;border-radius:6px}
+.nav-link:hover{color:var(--text);background:var(--bg-raised)}
+.nav-link.active{color:var(--gold)}
+.nav-auth{display:flex;align-items:center;gap:10px}
+.nav-user{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+
+.btn{display:inline-flex;align-items:center;gap:7px;border-radius:6px;border:1px solid transparent;
+  padding:10px 16px;font-size:14px;font-weight:500;transition:transform .08s,background .15s}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.55;cursor:default;transform:none}
+.btn-primary{background:var(--gold);color:#1c1608}
+.btn-primary:hover{background:#ffcb2e}
+.btn-danger{background:transparent;color:var(--flame);border-color:var(--flame)}
+.btn-danger:hover{background:rgba(232,73,42,.12)}
+.btn-ghost{background:transparent;color:var(--muted);border-color:var(--border)}
+.btn-ghost:hover{color:var(--text);border-color:var(--muted)}
+.btn-sm{padding:7px 12px;font-size:13px}
+.btn-icon{padding:8px}
+.btn-block{width:100%;justify-content:center;margin-top:4px}
+
+.main{max-width:1120px;margin:0 auto;padding:40px 24px 80px}
+.page-head{margin-bottom:28px}
+.page-head-row{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.page-title{font-family:'Fraunces',serif;font-weight:600;font-size:34px;margin-bottom:6px}
+.page-sub{color:var(--muted);font-size:14.5px}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:22px}
+.card{background:none;border:none;padding:0;text-align:left;color:var(--text)}
+.card-row{display:flex;justify-content:space-between;align-items:center;margin-top:9px;font-size:12.5px;color:var(--muted)}
+.card-id{color:var(--gold)}
+
+.poster{position:relative;border-radius:6px;overflow:hidden;aspect-ratio:2/3;display:flex;flex-direction:column;
+  justify-content:flex-end;padding:16px;border:1px solid rgba(255,255,255,.06);background-size:cover;background-position:center}
+.poster-large{aspect-ratio:3/4;min-height:340px}
+.poster-grain{position:absolute;inset:0;opacity:.5;mix-blend-mode:overlay;
+  background-image:radial-gradient(rgba(255,255,255,.5) 1px,transparent 1px);background-size:3px 3px}
+.poster-shade{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.75),transparent 60%)}
+.poster-title{position:relative;font-family:'Fraunces',serif;font-weight:600;font-size:22px;line-height:1.15;
+  color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.35)}
+.poster-large .poster-title{font-size:30px}
+.poster-meta{position:relative;font-size:12px;color:rgba(255,255,255,.75);margin-top:6px}
+
+.empty{border:1px dashed var(--border);border-radius:8px;padding:60px 20px;text-align:center;color:var(--muted)}
+.back-link{display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--muted);
+  font-size:13.5px;margin-bottom:22px}
+.back-link:hover{color:var(--text)}
+
+.detail-layout{display:grid;grid-template-columns:280px 1fr;gap:40px}
+.detail-title{font-family:'Fraunces',serif;font-weight:600;font-size:38px;margin-bottom:16px;line-height:1.05}
+.detail-meta{display:flex;gap:24px;color:var(--muted);font-size:14px;margin-bottom:20px;flex-wrap:wrap}
+.detail-meta b{color:var(--text);font-weight:600;display:block;font-size:20px}
+.detail-note{color:var(--muted);font-size:13px;border-left:2px solid var(--border);padding-left:12px;margin-bottom:26px;max-width:48ch;line-height:1.5}
+.detail-actions{display:flex;gap:12px;margin-top:12px;flex-wrap:wrap}
+
+.form-page{max-width:520px}
+.form{display:flex;flex-direction:column;gap:16px}
+.field{display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.field-label{color:var(--muted)}
+.field-wrap{position:relative;display:flex;align-items:center}
+.field-icon{position:absolute;left:12px;color:var(--muted);display:flex}
+.field-input{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;
+  padding:10px 12px;color:var(--text);font-size:14px;width:100%}
+.field-wrap .field-input{padding-left:34px}
+.field-input:focus{outline:none;border-color:var(--gold)}
+.field-error{color:var(--flame);font-size:12.5px}
+.field-hint{color:var(--muted);font-size:12px}
+.form-actions{display:flex;gap:12px;justify-content:flex-end;margin-top:6px}
+
+.auth-page{display:flex;justify-content:center;padding-top:20px}
+.auth-card{width:100%;max-width:400px;background:var(--bg-panel);border:1px solid var(--border);
+  border-radius:10px;overflow:hidden}
+.auth-body{padding:32px 30px 30px}
+.auth-title{font-family:'Fraunces',serif;font-size:26px;font-weight:600;margin-bottom:6px}
+.auth-sub{color:var(--muted);font-size:14px;margin-bottom:22px}
+.auth-switch{text-align:center;font-size:13.5px;color:var(--muted);margin-top:18px}
+.auth-switch button{background:none;border:none;color:var(--gold);font-size:13.5px}
+.auth-notice{background:rgba(242,183,5,.12);border:1px solid rgba(242,183,5,.35);color:var(--gold);
+  font-size:13px;padding:10px 12px;border-radius:6px;margin-bottom:16px}
+
+.user-list{display:flex;flex-direction:column;gap:1px;background:var(--border);border-radius:8px;
+  overflow:hidden;border:1px solid var(--border);margin-bottom:26px}
+.user-row{display:flex;align-items:center;gap:14px;background:var(--bg-panel);padding:14px 16px}
+.user-avatar{width:34px;height:34px;border-radius:6px;background:var(--bg-raised);color:var(--gold);
+  display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:600;flex-shrink:0}
+.user-info{flex:1;min-width:0}
+.user-name{font-size:14.5px;display:flex;align-items:center;gap:8px}
+.user-you{font-size:11px;color:var(--teal);border:1px solid var(--teal);border-radius:4px;padding:1px 6px}
+.user-email{font-size:12.5px;color:var(--muted)}
+.user-id{font-size:12px;color:var(--muted)}
+
+.modal-backdrop{position:fixed;inset:0;background:rgba(10,8,14,.7);display:flex;align-items:center;
+  justify-content:center;z-index:50;padding:20px}
+.modal{background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:26px;
+  max-width:380px;width:100%;position:relative}
+.modal-close{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--muted)}
+.modal-title{font-family:'Fraunces',serif;font-size:19px;margin-bottom:8px;padding-right:20px}
+.modal-body{color:var(--muted);font-size:14px;line-height:1.5;margin-bottom:20px}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px}
+
+.banner{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:60;max-width:560px;width:calc(100% - 32px);
+  padding:12px 16px;border-radius:8px;font-size:13.5px;display:flex;align-items:flex-start;gap:10px;
+  box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.banner-error{background:#2b1414;border:1px solid var(--flame);color:#ffb9a6}
+.banner-ok{background:#132b22;border:1px solid var(--teal);color:#a6ffe6}
+.banner button{background:none;border:none;color:inherit;margin-left:auto;opacity:.7}
+.loading-note{color:var(--muted);font-size:13.5px;padding:30px 0}
+
+@media(max-width:720px){
+  .nav-links{display:none}
+  .detail-layout{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <button class="brand" onclick="goto('gallery')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5"/></svg>
+      <span>Frame</span>
+    </button>
+    <nav class="nav-links" id="navLinks"></nav>
+    <div class="nav-auth" id="navAuth"></div>
+  </div>
+  <div class="sprocket"></div>
+</header>
+
+<main class="main" id="app"></main>
+<div id="modalRoot"></div>
+<div id="bannerRoot"></div>
+
+<script>
+/* Фронтенд под текущий бэкенд (main.go, ApiMovie.go, ApiUsers.go, middaleware.go).
+   Бэкенд не менялся. Учтено:
+   • заголовок авторизации — "Authorization" (раньше было "Authorizator", из-за чего токен не доходил);
+   • jwtMiddle отвечает 404 (нет токена) / 511 (неверный токен), middleAdmin — 404 / 400;
+   • роль и срок токена читаются из самого JWT (поля Role, UserEmail, exp);
+   • /users и /deluser доступны только admin — остальным эти разделы не показываются;
+   • фильм открывается из списка /movies, редактирование идёт через PUT /movie/{id}. */
+
+const API_BASE = location.protocol.startsWith("http") ? "" : "http://localhost:3030";
+
+const ROUTES = {
+  listMovies:   () => ({ method:"GET",    path:`/movies` }),
+  createMovie:  () => ({ method:"POST",   path:`/createmovie` }),
+  updateMovie:  id => ({ method:"PUT",    path:`/movie/${id}` }),
+  deleteMovie:  id => ({ method:"DELETE", path:`/movie/${id}` }),
+  registerUser: () => ({ method:"POST",   path:`/userreg` }),
+  deleteUser:   id => ({ method:"DELETE", path:`/deluser/${id}` }),
+  login:        () => ({ method:"POST",   path:`/loginuser` }),
+  listUsers:    () => ({ method:"GET",    path:`/users` }),
+};
+
+const AUTH_HEADER = "Authorization";
+
+/* -------------------------------- токен -------------------------------- */
+
+const TOKEN_KEY = "frame_token";
+const getToken   = () => { try { return localStorage.getItem(TOKEN_KEY); } catch { return null; } };
+const setToken   = t  => { try { localStorage.setItem(TOKEN_KEY, t); } catch {} };
+const clearToken = () => { try { localStorage.removeItem(TOKEN_KEY); } catch {} };
+
+function decodeJwt(t){
+  try {
+    const p = t.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const bin = atob(p + "=".repeat((4 - p.length % 4) % 4));
+    return JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0))));
+  } catch { return null; }
+}
+// Данные токена, если он есть и не истёк; иначе null.
+function session(){
+  const t = getToken();
+  if (!t) return null;
+  const p = decodeJwt(t);
+  if (!p || !p.exp || p.exp * 1000 <= Date.now()){ clearToken(); return null; }
+  return p;
+}
+const isAdmin = () => { const p = session(); return !!p && p.Role === "admin"; };
+
+/* -------------------------------- запросы -------------------------------- */
+
+async function apiRaw(route, body, useAuth){
+  const headers = { "Content-Type": "application/json" };
+  if (useAuth){
+    const t = getToken();
+    if (t) headers[AUTH_HEADER] = "Bearer " + t;
+  }
+  let res;
+  try {
+    res = await fetch(API_BASE + route.path, {
+      method: route.method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+  } catch (err) {
+    throw new Error("Не удалось подключиться к серверу. Откройте страницу по адресу сервера (например, http://localhost:3030), а не как файл.");
+  }
+  const text = (await res.text()).trim();
+  return { status: res.status, text };
+}
+
+// true — запрос отклонён из-за авторизации (и это уже обработано)
+function checkAuth(status, admin){
+  const fail = status === 404 || status === 511 || (admin && status === 400);
+  if (!fail) return false;
+  const p = session();
+  if (p && admin && p.Role !== "admin"){
+    showBanner("Это действие доступно только администратору.", "error");
+    goto("gallery");
+  } else {
+    handleAuthFailure();
+  }
+  return true;
+}
+
+/* --------------------------------- баннер --------------------------------- */
+
+function showBanner(msg, type){
+  const root = document.getElementById("bannerRoot");
+  root.innerHTML = `<div class="banner banner-${type === 'ok' ? 'ok' : 'error'}">
+    <span>${esc(msg)}</span>
+    <button onclick="document.getElementById('bannerRoot').innerHTML=''">${ic.close}</button>
+  </div>`;
+  if (type === "ok") setTimeout(() => { root.innerHTML = ""; }, 2500);
+}
+function handleAuthFailure(){
+  showBanner("Сессия истекла или токен недействителен — войдите заново.", "error");
+  currentUser = null; users = []; clearToken(); goto("login");
+}
+
+/* -------------------------------- состояние -------------------------------- */
+
+let movies = [];
+let users = [];
+let currentUser = null;   // { email, role, id?, name? }
+let view = "gallery";
+let selectedId = null;
+let authNotice = "";
+let loadingMovies = false;
+let loadingUsers = false;
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sameId = (a, b) => String(a) === String(b);
+
+function plural(n, one, few, many){
+  const a = Math.abs(n) % 100, b = a % 10;
+  if (a > 10 && a < 20) return many;
+  if (b > 1 && b < 5) return few;
+  if (b === 1) return one;
+  return many;
+}
+
+const GRADIENTS = [
+  "linear-gradient(135deg,#16233f,#3fa796)","linear-gradient(135deg,#2b0e0e,#e8492a)",
+  "linear-gradient(135deg,#211f36,#6c63a6)","linear-gradient(135deg,#2c2818,#a4874a)",
+  "linear-gradient(135deg,#371a47,#f5b700)","linear-gradient(135deg,#472a10,#f5b700)",
+  "linear-gradient(135deg,#0d1c14,#2f6f4e)","linear-gradient(135deg,#360f2c,#e85c8a)",
+];
+function gradientFor(name){
+  let h = 0;
+  for (const c of String(name)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return GRADIENTS[h % GRADIENTS.length];
+}
+
+const ic = {
+  trash:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>',
+  plus:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>',
+  back:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>',
+  login:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>',
+  logout:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>',
+  userplus:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>',
+  user:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  mail:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>',
+  lock:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>',
+  image:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>',
+  edit:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z"/></svg>',
+  close:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>'
+};
+
+/* -------------------------------- навигация -------------------------------- */
+
+function goto(v, id){
+  authNotice = "";
+  if (v === "detail" || v === "edit") selectedId = id ?? selectedId;
+  view = v;
+  window.scrollTo(0,0);
+  render();
+  if (v === "gallery" && movies.length === 0 && !loadingMovies) loadMovies();
+  if (v === "users" && isAdmin()) loadUsers();
+}
+function requireAuth(v){
+  if (!session()){
+    currentUser = null;
+    authNotice = { add:"Войдите, чтобы добавить фильм.", edit:"Войдите, чтобы изменить фильм.",
+                   users:"Войдите, чтобы управлять пользователями." }[v] || "Сначала войдите.";
+    view = "login"; render(); return;
+  }
+  if (v === "users" && !isAdmin()){
+    showBanner("Раздел «Пользователи» доступен только администратору.", "error");
+    return;
+  }
+  goto(v);
+}
+function logout(){ currentUser = null; clearToken(); users = []; goto("gallery"); }
+
+/* ------------------------------- запросы к API ------------------------------- */
+
+async function loadMovies(){
+  loadingMovies = true; render();
+  try {
+    const { status, text } = await apiRaw(ROUTES.listMovies(), undefined, false);
+    if (status !== 200) throw new Error("Не удалось загрузить фильмы: " + (text || "статус " + status));
+    let raw;
+    try { raw = text ? JSON.parse(text) : []; }
+    catch { throw new Error("Сервер вернул не-JSON ответ на GET /movies: " + text.slice(0, 140)); }
+    movies = (raw || []).map(m => ({
+      id: m.id ?? m.Id, name: m.name ?? m.Name, time: m.time ?? m.Time,
+      gb: m.gb ?? m.Gb, image: m.image ?? m.Image,
+    }));
+  } catch (err) {
+    showBanner(err.message, "error");
+    movies = [];
+  } finally {
+    loadingMovies = false; render();
+  }
+}
+
+async function loadUsers(){
+  loadingUsers = true; render();
+  try {
+    const { status, text } = await apiRaw(ROUTES.listUsers(), undefined, true);
+    if (checkAuth(status, true)) return;
+    if (status !== 200) throw new Error("Не удалось загрузить пользователей: " + (text || "статус " + status));
+    let raw;
+    try { raw = text ? JSON.parse(text) : []; }
+    catch { throw new Error("Сервер вернул не-JSON ответ на GET /users: " + text.slice(0, 140)); }
+    users = (raw || []).map(u => ({ id: u.id ?? u.Id, name: u.name ?? u.Name, email: u.email ?? u.Email }));
+  } catch (err) {
+    showBanner(err.message, "error");
+    users = [];
+  } finally {
+    loadingUsers = false; render();
+  }
+}
+
+// Подтягивает id и имя текущего пользователя (список доступен только админу).
+async function hydrateUser(){
+  if (!currentUser || currentUser.role !== "admin") return;
+  try {
+    const r = await apiRaw(ROUTES.listUsers(), undefined, true);
+    if (r.status !== 200) return;
+    const list = JSON.parse(r.text || "[]") || [];
+    const found = list.find(u => (u.email ?? u.Email) === currentUser.email);
+    if (found && currentUser){
+      currentUser = { ...currentUser, id: found.id ?? found.Id, name: found.name ?? found.Name };
+      render();
+    }
+  } catch {}
+}
+
+function showFieldErrors(f, errs){
+  document.querySelectorAll(".field-error").forEach(el => el.remove());
+  for (const k in errs){
+    const s = document.createElement("span");
+    s.className = "field-error"; s.textContent = errs[k];
+    f.elements[k].closest(".field").appendChild(s);
+  }
+}
+
+function validateMovie(f){
+  const v = n => f.elements[n].value.trim();
+  const errs = {};
+  if (!v("name")) errs.name = "Укажите название.";
+  if (!v("time") || !Number.isInteger(+v("time")) || +v("time") <= 0) errs.time = "Длительность — целое число минут.";
+  if (v("gb") === "" || !Number.isInteger(+v("gb")) || +v("gb") < 0) errs.gb = "Размер — целое число Гб.";
+  return errs;
+}
+
+async function addMovie(e){
+  e.preventDefault();
+  const f = e.target;
+  const v = n => f.elements[n].value.trim();
+  const errs = validateMovie(f);
+  showFieldErrors(f, errs);
+  if (Object.keys(errs).length) return;
+  if (!session()){ requireAuth("add"); return; }
+
+  const btn = f.querySelector('button[type="submit"]');
+  btn.disabled = true; btn.textContent = "Добавляем…";
+  try {
+    const { status, text } = await apiRaw(ROUTES.createMovie(),
+      { Name: v("name"), Time: +v("time"), Gb: +v("gb"), Image: v("image") }, true);
+    if (checkAuth(status, false)) return;
+    if (text.includes("Запись успешна")) {
+      showBanner("Фильм добавлен.", "ok");
+      goto("gallery"); loadMovies();
+    } else {
+      showBanner("Сервер ответил: " + (text || "пусто — смотрите лог сервера"), "error");
+      btn.disabled = false; btn.innerHTML = `${ic.plus} Добавить фильм`;
+    }
+  } catch (err) {
+    showBanner(err.message, "error");
+    btn.disabled = false; btn.innerHTML = `${ic.plus} Добавить фильм`;
+  }
+}
+
+async function editMovie(e){
+  e.preventDefault();
+  const f = e.target;
+  const v = n => f.elements[n].value.trim();
+  const errs = validateMovie(f);
+  showFieldErrors(f, errs);
+  if (Object.keys(errs).length) return;
+  if (!session()){ requireAuth("edit"); return; }
+
+  const btn = f.querySelector('button[type="submit"]');
+  btn.disabled = true; btn.textContent = "Сохраняем…";
+  try {
+    const { status, text } = await apiRaw(ROUTES.updateMovie(selectedId),
+      { Name: v("name"), Time: +v("time"), Gb: +v("gb") }, true);
+    if (checkAuth(status, false)) return;
+    if (text.includes("Изменение успешно")) {
+      showBanner("Изменения сохранены.", "ok");
+      await loadMovies();
+      goto("detail", selectedId);
+    } else {
+      showBanner("Сервер ответил: " + (text || "пусто — смотрите лог сервера"), "error");
+      btn.disabled = false; btn.innerHTML = `${ic.edit} Сохранить`;
+    }
+  } catch (err) {
+    showBanner(err.message, "error");
+    btn.disabled = false; btn.innerHTML = `${ic.edit} Сохранить`;
+  }
+}
+
+function askDeleteMovie(id){
+  if (!session()){ authNotice = "Войдите, чтобы удалить фильм."; view = "login"; render(); return; }
+  const m = movies.find(x => sameId(x.id, id));
+  confirmModal(`Удалить «${m ? m.name : id}»?`, "Фильм удалится из базы. Отменить это будет нельзя.",
+    "Удалить фильм", async () => {
+      try {
+        const { status, text } = await apiRaw(ROUTES.deleteMovie(id), undefined, true);
+        closeModal();
+        if (checkAuth(status, false)) return;
+        if (text.includes("Удаление успешно")) {
+          showBanner("Фильм удалён.", "ok");
+          goto("gallery"); loadMovies();
+        } else {
+          showBanner("Сервер ответил: " + (text || "пусто — смотрите лог сервера"), "error");
+        }
+      } catch (err) {
+        closeModal();
+        showBanner(err.message, "error");
+      }
+    });
+}
+
+async function login(e){
+  e.preventDefault();
+  const f = e.target;
+  const email = f.elements.email.value.trim();
+  const password = f.elements.password.value;
+  document.querySelectorAll(".field-error").forEach(el => el.remove());
+
+  const btn = f.querySelector('button[type="submit"]');
+  btn.disabled = true; btn.textContent = "Входим…";
+  try {
+    const { status, text } = await apiRaw(ROUTES.login(), { Email: email, Password: password }, false);
+
+    if (status === 200 && text.startsWith("Вход успешен")) {
+      const after = text.split("ваш ключ")[1]?.trim() || "";
+      const token = after.split(/\s+/)[0];
+      if (!token) throw new Error("Сервер подтвердил вход, но токен не найден в ответе.");
+      setToken(token);
+      const p = session();
+      currentUser = { email: p ? p.UserEmail : email, role: p ? p.Role : "user" };
+      goto("gallery");
+      hydrateUser();
+      return;
+    }
+    if (status === 404) throw new Error("Неверная почта или пароль.");
+    throw new Error("Сервер ответил: " + (text || `статус ${status}`));
+  } catch (err) {
+    const s = document.createElement("span");
+    s.className = "field-error"; s.textContent = err.message;
+    btn.before(s);
+    btn.disabled = false; btn.innerHTML = `${ic.login} Войти`;
+  }
+}
+
+async function register(e){
+  e.preventDefault();
+  const f = e.target;
+  const v = n => f.elements[n].value.trim();
+  const errs = {};
+  if (!v("name")) errs.name = "Укажите имя.";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v("email"))) errs.email = "Некорректная почта.";
+  if (f.elements.password.value.length < 6) errs.password = "Минимум 6 символов.";
+  showFieldErrors(f, errs);
+  if (Object.keys(errs).length) return;
+
+  const btn = f.querySelector('button[type="submit"]');
+  btn.disabled = true; btn.textContent = "Создаём…";
+  try {
+    const { text } = await apiRaw(ROUTES.registerUser(),
+      { Name: v("name"), Email: v("email"), Password: f.elements.password.value }, false);
+    if (text.includes("Регистрация успешна")) {
+      showBanner("Пользователь добавлен.", "ok");
+      goto(isAdmin() ? "users" : "login");
+    } else {
+      showBanner(text.includes("уже есть") ? "Пользователь с такой почтой уже существует." : "Сервер ответил: " + (text || "пусто"), "error");
+      btn.disabled = false; btn.innerHTML = `${ic.userplus} Создать`;
+    }
+  } catch (err) {
+    showBanner(err.message, "error");
+    btn.disabled = false; btn.innerHTML = `${ic.userplus} Создать`;
+  }
+}
+
+function askDeleteUser(id){
+  const u = users.find(x => sameId(x.id, id));
+  const name = u ? (u.name || u.email) : "";
+  confirmModal(`Удалить ${name || "пользователя #" + id}?`, "Аккаунт удалится из базы без возможности отмены.",
+    "Удалить пользователя", async () => {
+      try {
+        const { status, text } = await apiRaw(ROUTES.deleteUser(id), undefined, true);
+        closeModal();
+        if (checkAuth(status, true)) return;
+        if (text.includes("Удаление успешно")) {
+          showBanner("Пользователь удалён.", "ok");
+          if (currentUser && sameId(currentUser.id, id)) { currentUser = null; clearToken(); users = []; goto("gallery"); return; }
+          loadUsers();
+        } else {
+          showBanner("Сервер ответил: " + (text || "пусто"), "error");
+        }
+      } catch (err) {
+        closeModal();
+        showBanner(err.message, "error");
+      }
+    });
+}
+
+/* -------------------------------- модалка -------------------------------- */
+function closeModal(){ document.getElementById("modalRoot").innerHTML = ""; }
+function confirmModal(title, body, label, onYes){
+  const root = document.getElementById("modalRoot");
+  root.innerHTML = `
+    <div class="modal-backdrop" onclick="closeModal()">
+      <div class="modal" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeModal()">${ic.close}</button>
+        <h3 class="modal-title">${esc(title)}</h3>
+        <p class="modal-body">${esc(body)}</p>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" onclick="closeModal()">Отмена</button>
+          <button class="btn btn-danger" id="confirmYes">${esc(label)}</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById("confirmYes").onclick = onYes;
+}
+
+/* ------------------------------ шаблоны ------------------------------ */
+function cssUrl(u){
+  return "url('" + String(u).trim().replace(/[\\'"()\s]/g, c => "%" + c.charCodeAt(0).toString(16).toUpperCase().padStart(2, "0")) + "')";
+}
+function posterHTML(m, size){
+  const grad = gradientFor(m.name);
+  const bg = m.image ? `${cssUrl(m.image)}, ${grad}` : grad;
+  return `<div class="poster ${size === 'large' ? 'poster-large' : ''}" style="background-image:${esc(bg)}">
+    ${m.image ? `<div class="poster-shade"></div>` : `<div class="poster-grain"></div>`}
+    <div class="poster-title">${esc(m.name || "Без названия")}</div>
+    <div class="poster-meta">${m.time ?? "—"} мин · ${m.gb ?? "—"} Гб</div>
+  </div>`;
+}
+function field(label, name, opts){
+  opts = opts || {};
+  const inner = `<input class="field-input" name="${name}" type="${opts.type||'text'}"
+    ${opts.step?`step="${opts.step}"`:''} ${opts.min!==undefined?`min="${opts.min}"`:''}
+    ${opts.value!==undefined&&opts.value!==null?`value="${esc(opts.value)}"`:''}
+    ${opts.placeholder?`placeholder="${esc(opts.placeholder)}"`:''}>`;
+  return `<label class="field">
+    <span class="field-label">${label}</span>
+    ${opts.icon ? `<span class="field-wrap"><span class="field-icon">${ic[opts.icon]}</span>${inner}</span>` : inner}
+  </label>`;
+}
+
+/* -------------------------------- рендер -------------------------------- */
+function render(){
+  // если токен истёк сам по себе — выходим
+  if (currentUser && !session()){ currentUser = null; users = []; }
+  const admin = isAdmin();
+
+  document.getElementById("navLinks").innerHTML = `
+    <button class="nav-link ${view==='gallery'||view==='detail'?'active':''}" onclick="goto('gallery')">Все фильмы</button>
+    <button class="nav-link ${view==='add'?'active':''}" onclick="requireAuth('add')">Добавить фильм</button>
+    ${admin ? `<button class="nav-link ${view==='users'?'active':''}" onclick="requireAuth('users')">Пользователи</button>` : ""}`;
+
+  document.getElementById("navAuth").innerHTML = currentUser ? `
+    <span class="nav-user">${ic.user} ${esc(currentUser.name || currentUser.email)}</span>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">${ic.logout} Выйти</button>` : `
+    <button class="btn btn-ghost btn-sm" onclick="goto('login')">${ic.login} Войти</button>
+    <button class="btn btn-primary btn-sm" onclick="goto('register')">${ic.userplus} Регистрация</button>`;
+
+  const app = document.getElementById("app");
+
+  if (view === "gallery"){
+    app.innerHTML = `
+      <div class="page-head">
+        <h1 class="page-title">Каталог</h1>
+        <p class="page-sub">${loadingMovies ? "Загружаем фильмы…" : movies.length + " " + plural(movies.length, "фильм", "фильма", "фильмов") + " в базе."}</p>
+      </div>
+      ${loadingMovies ? `<p class="loading-note">Загрузка…</p>` :
+        movies.length === 0
+        ? `<div class="empty"><p>Фильмов пока нет. Добавьте первый или проверьте подключение к серверу.</p></div>`
+        : `<div class="grid">${movies.map(m => `
+            <button class="card" onclick="goto('detail',${Number(m.id)})">
+              ${posterHTML(m)}
+              <div class="card-row"><span class="card-id">#${esc(m.id)}</span><span>${m.gb ?? "—"} Гб</span></div>
+            </button>`).join("")}</div>`}`;
+  }
+
+  else if (view === "detail"){
+    const m = movies.find(x => sameId(x.id, selectedId));
+    if (!m){ goto("gallery"); return; }
+    app.innerHTML = `
+      <button class="back-link" onclick="goto('gallery')">${ic.back} Все фильмы</button>
+      <div class="detail-layout">
+        ${posterHTML(m,'large')}
+        <div>
+          <h1 class="detail-title">${esc(m.name)}</h1>
+          <div class="detail-meta">
+            <div><b>${m.time ?? "—"}</b>мин</div>
+            <div><b>${m.gb ?? "—"}</b>Гб</div>
+            <div><b>#${esc(m.id)}</b>id в базе</div>
+          </div>
+          <div class="detail-actions">
+            <button class="btn btn-ghost" onclick="requireAuth('edit')">${ic.edit} Изменить</button>
+            <button class="btn btn-danger" onclick="askDeleteMovie(${Number(m.id)})">${ic.trash} Удалить фильм</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  else if (view === "edit"){
+    const m = movies.find(x => sameId(x.id, selectedId));
+    if (!m){ goto("gallery"); return; }
+    app.innerHTML = `
+      <div class="form-page">
+        <button class="back-link" onclick="goto('detail',${Number(m.id)})">${ic.back} Отмена</button>
+        <h1 class="page-title">Изменить фильм</h1>
+        <p class="page-sub">Название, длительность и размер. Постер здесь не меняется.</p>
+        <form class="form" style="margin-top:24px" onsubmit="editMovie(event)">
+          ${field("Название","name",{value:m.name})}
+          ${field("Длительность (мин)","time",{type:"number",step:"1",min:"1",value:m.time})}
+          ${field("Размер файла (Гб)","gb",{type:"number",step:"1",min:"0",value:m.gb})}
+          <div class="form-actions">
+            <button type="button" class="btn btn-ghost" onclick="goto('detail',${Number(m.id)})">Отмена</button>
+            <button type="submit" class="btn btn-primary">${ic.edit} Сохранить</button>
+          </div>
+        </form>
+      </div>`;
+  }
+
+  else if (view === "add"){
+    app.innerHTML = `
+      <div class="form-page">
+        <button class="back-link" onclick="goto('gallery')">${ic.back} Отмена</button>
+        <h1 class="page-title">Добавить фильм</h1>
+        <p class="page-sub">Заполните данные фильма — он появится в каталоге.</p>
+        <form class="form" style="margin-top:24px" onsubmit="addMovie(event)">
+          ${field("Название","name",{placeholder:"Тихий час"})}
+          ${field("Длительность (мин)","time",{type:"number",step:"1",min:"1"})}
+          ${field("Размер файла (Гб)","gb",{type:"number",step:"1",min:"0"})}
+          ${field("Ссылка на постер (необязательно)","image",{icon:"image",placeholder:"https://..."})}
+          <div class="form-actions">
+            <button type="button" class="btn btn-ghost" onclick="goto('gallery')">Отмена</button>
+            <button type="submit" class="btn btn-primary">${ic.plus} Добавить фильм</button>
+          </div>
+        </form>
+      </div>`;
+  }
+
+  else if (view === "login"){
+    app.innerHTML = `
+      <div class="auth-page"><div class="auth-card"><div class="sprocket"></div><div class="auth-body">
+        <h1 class="auth-title">С возвращением</h1>
+        <p class="auth-sub">Войдите, чтобы добавлять и менять фильмы. Сессия действует 15 минут.</p>
+        ${authNotice ? `<div class="auth-notice">${esc(authNotice)}</div>` : ""}
+        <form class="form" onsubmit="login(event)">
+          ${field("Почта","email",{type:"email",icon:"mail"})}
+          ${field("Пароль","password",{type:"password",icon:"lock"})}
+          <button type="submit" class="btn btn-primary btn-block">${ic.login} Войти</button>
+        </form>
+        <p class="auth-switch">Нет аккаунта? <button onclick="goto('register')">Зарегистрироваться</button></p>
+      </div></div></div>`;
+  }
+
+  else if (view === "register"){
+    app.innerHTML = `
+      <div class="auth-page"><div class="auth-card"><div class="sprocket"></div><div class="auth-body">
+        <h1 class="auth-title">${currentUser ? "Добавить пользователя" : "Регистрация"}</h1>
+        <p class="auth-sub">Создайте аккаунт, чтобы потом войти.</p>
+        <form class="form" onsubmit="register(event)">
+          ${field("Имя","name",{icon:"user"})}
+          ${field("Почта","email",{type:"email",icon:"mail"})}
+          ${field("Пароль","password",{type:"password",icon:"lock"})}
+          <button type="submit" class="btn btn-primary btn-block">${ic.userplus} Создать</button>
+        </form>
+        <p class="auth-switch">Уже есть аккаунт? <button onclick="goto('login')">Войти</button></p>
+      </div></div></div>`;
+  }
+
+  else if (view === "users"){
+    if (!admin){ view = "gallery"; render(); return; }
+    app.innerHTML = `
+      <div class="page-head page-head-row">
+        <div>
+          <h1 class="page-title">Пользователи</h1>
+          <p class="page-sub">${loadingUsers ? "Загружаем…" : users.length + " " + plural(users.length, "пользователь", "пользователя", "пользователей") + " в базе."}</p>
+        </div>
+        <button class="btn btn-primary" onclick="goto('register')">${ic.userplus} Добавить пользователя</button>
+      </div>
+      ${loadingUsers ? `<p class="loading-note">Загрузка…</p>` :
+      users.length === 0 ? `<div class="empty"><p>Пользователей пока нет (или не удалось загрузить).</p></div>` :
+      `<div class="user-list">${users.map(u => `
+        <div class="user-row">
+          <div class="user-avatar">${esc((u.name||u.email||"?").slice(0,2).toUpperCase())}</div>
+          <div class="user-info">
+            <div class="user-name">${esc(u.name || u.email)} ${currentUser && sameId(currentUser.id, u.id) ? '<span class="user-you">вы</span>' : ''}</div>
+            <div class="user-email">${esc(u.email)}</div>
+          </div>
+          <div class="user-id">#${esc(u.id)}</div>
+          <button class="btn btn-ghost btn-sm btn-icon" title="Удалить" onclick="askDeleteUser(${Number(u.id)})">${ic.trash}</button>
+        </div>`).join("")}</div>`}`;
+  }
+}
+
+/* --------------------------------- старт --------------------------------- */
+(function init(){
+  const p = session();
+  if (p) currentUser = { email: p.UserEmail, role: p.Role };
+  render();
+  loadMovies();
+  hydrateUser();
+})();
+</script>
+</body>
+</html>
